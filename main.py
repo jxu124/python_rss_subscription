@@ -125,7 +125,7 @@ def update_anime(args):
 
         # 对比数据库
         print("[Info] Checking Database...")
-        database = DataBase(args.db_path, args.sshpass)
+        database = DataBase(args.db_path, args.cmd_sshpass)
         rss_db = database.detect(rss_db)
 
         print("[Info] Find {} update(s).".format(len(rss_db)))
@@ -142,7 +142,7 @@ def update_anime(args):
         for k, v in rss_db.items():
             if v["magnet"] is None:
                 continue
-            cmd = "{} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox {}".format(args.sshpass, v["magnet"])
+            cmd = "{} {} {}".format(args.cmd_sshpass, args.cmd_add_magnet, v["magnet"])
             if os.system(cmd) == 0:
                 print("[Info] Success Add {} {}".format(k, v["magnet"]))
                 database.update(v)
@@ -164,10 +164,12 @@ if __name__ == "__main__":
     parser.add_argument("--url", type=str, default="https://share.dmhy.org/topics/rss/rss.xml")
     parser.add_argument("--proxy", type=str, default="")
     parser.add_argument("--db_path", type=str, default="antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json")
-    parser.add_argument("--sshpass", type=str, default="")
+    parser.add_argument("--cmd_sshpass", type=str, default="")
+    parser.add_argument("--cmd_add_magnet", type=str, default="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox")
     args = parser.parse_args()
 
     # --proxy http://127.0.0.1:1080
-    # --sshpass "sshpass -p ******"
     # --db_path "antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json"
+    # --cmd_sshpass "sshpass -p ******"
+    # --cmd_add_magnet "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox"
     update_anime(args)
