@@ -1,5 +1,5 @@
   
-name: DMHY_Push_qBit
+name: Dmhy
 
 on:
   schedule:
@@ -8,7 +8,7 @@ on:
     branches: master
 
 jobs:
-  DMHY_Push_qBit:
+  Dmhy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
