@@ -1,0 +1,9 @@
+# dirs
+.vscode
+
+# files
+chromedriver
+*.pyc
+*.json
+*.tmp
+

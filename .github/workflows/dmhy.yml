@@ -1,0 +1,33 @@
+  
+name: DMHY_Push_qBit
+
+on:
+  schedule:
+    - cron: '0 10 * * *' # On the 1st of every month
+  push:
+    branches: master
+
+jobs:
+  DMHY_Push_qBit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: SetupChromedriver
+        uses: nanasess/setup-chromedriver@master
+        # with:
+        #   # Optional: do not specify to match Chrome's version
+        #   chromedriver-version: '77.0.3865.40'
+      - name: SetupPhton
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.6' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+      - name: FetchMagnet
+        run: |
+          URL="https://share.dmhy.org/topics/rss/rss.xml"
+          export DISPLAY=:99
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
+          apt update && apt install sshpass
+          pip install -r requarements.txt
+          python main.py --url "$URL" --sshpass "${{ secrets.SSHPASS }}"
