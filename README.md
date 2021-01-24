@@ -2,6 +2,7 @@
 rss_magnet
 
 [![GitHub Test Badge][1]][2]
+
 [1]: https://github.com/antonyxu-git/rss_magnet/workflows/Dmhy/badge.svg "GitHub Test Badge"
 [2]: https://github.com/antonyxu-git/rss_magnet/actions "GitHub Actions Page"
 
