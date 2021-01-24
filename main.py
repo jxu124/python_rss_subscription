@@ -55,22 +55,26 @@ class ChromeDriver(webdriver.Chrome):
 
 
 class DataBase(object):
-    def __init__(self, path):
+    def __init__(self, path="./AnimeDB.json", sshpass=""):
+        cmd = "{} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {} /tmp/AnimeDB.json".format(sshpass, path)
+        assert os.system(cmd) == 0
         self.path = path
+        self.sshpass = sshpass
         self.stamp = datetime(1900, 1, 1, 0, 0, 0, 0, timezone(timedelta(0, 28800)))
         self.load()
 
     def load(self):
-        assert self.path.endswith(".json")
-        if not os.path.exists(self.path):
-            print("[Info] Cannot open {}, download from `www.xujie-plus.tk`.".format(self.path))
-            assert os.system("curl https://www.xujie-plus.tk/openfiles/json/AnimeDB.json -o {}".format(self.path)) == 0
-        with open(self.path, "r") as f:
+        with open("/tmp/AnimeDB.json", "r") as f:
             self.db = json.load(f)
 
     def save(self):
-        with open(self.path, "w", encoding="utf-8") as f:
+        with open("/tmp/AnimeDB.json", "w", encoding="utf-8") as f:
             json.dump(self.db, f, ensure_ascii=False, indent=2)
+
+    def upload(self):
+        self.save()
+        cmd = "{} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/AnimeDB.json {}".format(sshpass, path)
+        assert os.system(cmd) == 0
 
     def update(self, value):
         key = value["key"]
@@ -121,7 +125,7 @@ def update_anime(args):
 
         # 对比数据库
         print("[Info] Checking Database...")
-        database = DataBase(args.db_path)
+        database = DataBase(args.db_path, args.sshpass)
         rss_db = database.detect(rss_db)
 
         print("[Info] Find {} update(s).".format(len(rss_db)))
@@ -142,12 +146,10 @@ def update_anime(args):
             if os.system(cmd) == 0:
                 print("[Info] Success Add {} {}".format(k, v["magnet"]))
                 database.update(v)
-        database.save()
 
         # 更新文件
-        print("[Info] Upload `{}` by scp...".format(args.db_path))
-        cmd = "{} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {} antony@www.xujie-plus.tk:/root/openfiles/json/".format(args.sshpass, args.db_path)
-        assert os.system(cmd) == 0
+        print("[Info] Upload `{}`...".format(args.db_path))
+        database.upload()
         
     finally:
         driver.quit()
@@ -161,7 +163,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", type=str, default="https://share.dmhy.org/topics/rss/rss.xml")
     parser.add_argument("--proxy", type=str, default="")
-    parser.add_argument("--db_path", type=str, default="./AnimeDB.json")
+    parser.add_argument("--db_path", type=str, default="antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json")
     parser.add_argument("--sshpass", type=str, default="")
     args = parser.parse_args()
 
