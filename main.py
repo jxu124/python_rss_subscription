@@ -73,7 +73,7 @@ class DataBase(object):
 
     def upload(self):
         self.save()
-        cmd = "{} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/AnimeDB.json {}".format(sshpass, path)
+        cmd = "{} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/AnimeDB.json {}".format(self.sshpass, self.path)
         assert os.system(cmd) == 0
 
     def update(self, value):
@@ -150,7 +150,7 @@ def update_anime(args):
         # 更新文件
         print("[Info] Upload `{}`...".format(args.db_path))
         database.upload()
-        
+
     finally:
         driver.quit()
 
@@ -167,5 +167,7 @@ if __name__ == "__main__":
     parser.add_argument("--sshpass", type=str, default="")
     args = parser.parse_args()
 
-    # --proxy http://127.0.0.1:1080 --sshpass "sshpass -p ******"
+    # --proxy http://127.0.0.1:1080
+    # --sshpass "sshpass -p ******"
+    # --db_path "antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json"
     update_anime(args)
