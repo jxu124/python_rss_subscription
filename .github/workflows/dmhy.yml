@@ -23,9 +23,9 @@ jobs:
         with:
           python-version: '3.6' # Version range or exact version of a Python version to use, using SemVer's version range syntax
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
-      # - name: InstallSshpass
-      #   run: |
-      #     sudo apt update && sudo apt-get install sshpass
+      - name: InstallSshpass
+        run: |
+          sudo apt update && sudo apt-get install sshpass
       - name: PypiInstall
         run: |
           pip install -r requarements.txt
