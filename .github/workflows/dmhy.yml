@@ -32,7 +32,7 @@ jobs:
       - name: FetchMagnet
         run: |
           URL="https://share.dmhy.org/topics/rss/rss.xml"
-          JSON_PATH="antony@www.xujie-plus.tk:/data/openfiles/json/AnimeDB.json"
+          JSON_PATH="antony@www.xujie-plus.tk:/data/webdav/tools/AnimeDB.json"
           CMD_ADD_MAGNET="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox"
           export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
           python main.py --url "$URL" --db_path "$JSON_PATH" --cmd_sshpass "${{ secrets.SSHPASS }}" --cmd_add_magnet "$CMD_ADD_MAGNET"
