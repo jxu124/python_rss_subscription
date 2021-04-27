@@ -3,11 +3,10 @@ rss_magnet
 
 [![GitHub Test Badge][1]][2]
 
-[1]: https://github.com/antonyxu-git/rss_magnet/workflows/Dmhy/badge.svg "GitHub Test Badge"
-[2]: https://github.com/antonyxu-git/rss_magnet/actions "GitHub Actions Page"
+[1]: https://github.com/jxu124/rss_magnet/workflows/DMHY_UPDATE/badge.svg "GitHub Test Badge"
+[2]: https://github.com/jxu124/rss_magnet/actions "GitHub Actions Page"
 
 ## Prepare
-
 
 ```bash
 pip install -r requarements.txt
@@ -16,9 +15,8 @@ pip install -r requarements.txt
 ## Usage
 
 ```bash
-URL="https://share.dmhy.org/topics/rss/rss.xml"
-JSON_PATH="antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json"
-CMD_ADD_MAGNET="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox"
-
-python main.py --proxy "" --url "$URL" --db_path "$JSON_PATH" --cmd_sshpass "${{ secrets.SSHPASS }}" --cmd_add_magnet "$CMD_ADD_MAGNET"
+URL_RSS="https://share.dmhy.org/topics/rss/rss.xml"
+URL_META="https://a.jxu124.ml/webdav/configure/anime_query"
+URL_JSON="https://a.jxu124.ml/webdav/configure/AnimeDB.json"
+python main.py --url_rss "$URL_RSS" --url_meta "$URL_META" --url_json "$URL_JSON" --username admin --password 123456
 ```
