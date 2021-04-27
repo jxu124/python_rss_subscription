@@ -5,12 +5,11 @@ from collections import defaultdict
 from webdav4.client import Client
 import os
 import re
-import io
 import sys
 import json
+import logging
 import argparse
 import tempfile
-import warnings
 import feedparser
 
 
@@ -123,11 +122,9 @@ class DataBase(object):
                 elif v2["type"] == "count":  # 规则：计数
                     res = re.findall(r'[【\[\ ](\d{2})[】\]\ ]', string)
                     if len(res) > 1:
-                        warnings.warn("MultiMatch: 'count' in '{}'".format(string))
-                    elif len(res) == 0:
+                        logging.warning("MultiMatch: 'count' in '{}'".format(string))
+                    if (v2["context"] + 1 not in [int(r) for r in res]) or len(res) == 0:
                         match = False
-                    else:
-                        match &= int(res[0]) > v2["context"]
             if match:
                 return k1
         return None
@@ -139,7 +136,7 @@ class DataBase(object):
             url = os.path.join(url_meta, k[:128]+".magnet")
             db = {"magnet": v["magnet"]}
             dav_write_json(url, self.auth, db)
-            print("[Info] Success Add {} {}".format(k, v["magnet"]))
+            logging.info("Success Add {} {}".format(k, v["magnet"]))
             self.update(v)
 
 
@@ -149,37 +146,38 @@ class DataBase(object):
 def main(url_rss, url_meta, url_json, auth, proxy=""):
     try:
         # 获取并解析RSS
-        print("[Info] Opening Chrome...")
+        logging.info("Opening Chrome...")
         driver = ChromeDriver(proxy=proxy)
         rss_db = driver.get_rss(url_rss)
 
         # 对比数据库 - 查找更新
-        print("[Info] Checking Database...")
+        logging.info("Checking Database...")
         database = DataBase(url_json, auth)
         rss_db = database.detect(rss_db)
 
-        print("[Info] Find {} update(s).".format(len(rss_db)))
-        print(tuple(rss_db.keys()))
+        logging.info("Find {} update(s).".format(len(rss_db)))
         if len(rss_db) == 0:
             return
 
         # 获取磁链
         for k, v in rss_db.items():
             v["magnet"] = driver.get_magnet(v["url"])
-            print("[Info] Magnet({}): {}".format(k, v["magnet"]))
+            logging.info("Magnet({}): {}".format(k, v["magnet"]))
 
         # 下载命令
         database.save_magnet(url_meta, rss_db)
 
         # 更新文件
-        print("[Info] Upload `{}`...".format(url_json))
+        logging.info("Upload `{}`...".format(url_json))
         database.upload()
 
     finally:
+        logging.info("Bye!")
         driver.quit()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.NOTSET)
     cwd, path = os.getcwd(), os.environ["PATH"]
     if cwd not in path:
         os.environ["PATH"] = "{}:{}".format(cwd, path)
@@ -192,5 +190,5 @@ if __name__ == "__main__":
     parser.add_argument("--password", type=str, default="")
     args = parser.parse_args()
 
-    # --cmd_add_magnet "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox"
+    # qbittorrent-nox [magnet]
     main(args.url_rss, args.url_meta, args.url_json, (args.username, args.password))
