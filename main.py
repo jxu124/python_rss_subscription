@@ -2,21 +2,47 @@
 from selenium import webdriver
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
-import feedparser
-import argparse
-import sys
+from webdav4.client import Client
 import os
-import json
 import re
+import io
+import sys
+import json
+import argparse
+import tempfile
 import warnings
+import feedparser
 
 
-# sshpass -p * scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ./AnimeDB.json antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json
-# sshpass -p * scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json ./AnimeDB.json
-# sshpass -p * ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox
-# datetime.strptime(i["published"], '%a, %d %b %Y %X %z')
+# ---------------------------------------------------------
+# ⚪ 下载解包json文件 - 基于Webdav
+# ---------------------------------------------------------
+def dav_read_json(file_url, auth):
+    url, filename = os.path.split(file_url)
+    client = Client(url, auth)
+    assert client.exists(filename)
+    local_file = tempfile.mkstemp()[1]
+    client.download_file(filename, local_file)
+    with open(local_file, "r", encoding="utf-8") as fp:
+        data = json.load(fp)
+    return data
 
 
+# ---------------------------------------------------------
+# ⚪ 打包上传json文件 - 基于Webdav
+# ---------------------------------------------------------
+def dav_write_json(file_url, auth, data):
+    url, filename = os.path.split(file_url)
+    client = Client(url, auth)
+    local_file = tempfile.mkstemp()[1]
+    with open(local_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    client.upload_file(local_file, filename, overwrite=True)
+    
+
+# ---------------------------------------------------------
+# ⚪ 浏览器驱动
+# ---------------------------------------------------------
 class ChromeDriver(webdriver.Chrome):
     def __init__(self, proxy=None):
         # wget -q https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_linux64.zip && unzip chromedriver_linux64.zip
@@ -54,27 +80,18 @@ class ChromeDriver(webdriver.Chrome):
         return magnet
 
 
+# ---------------------------------------------------------
+# ⚪ 番剧数据集操作
+# ---------------------------------------------------------
 class DataBase(object):
-    def __init__(self, path="./AnimeDB.json", sshpass=""):
-        cmd = "{} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {} /tmp/AnimeDB.json".format(sshpass, path)
-        assert os.system(cmd) == 0
-        self.path = path
-        self.sshpass = sshpass
+    def __init__(self, json_url="https://a.jxu124.ml/webdav/configure/AnimeDB.json", auth=None):
+        self.json_url = json_url
+        self.auth = auth
         self.stamp = datetime(1900, 1, 1, 0, 0, 0, 0, timezone(timedelta(0, 28800)))
-        self.load()
-
-    def load(self):
-        with open("/tmp/AnimeDB.json", "r") as f:
-            self.db = json.load(f)
-
-    def save(self):
-        with open("/tmp/AnimeDB.json", "w", encoding="utf-8") as f:
-            json.dump(self.db, f, ensure_ascii=False, indent=2)
+        self.db = dav_read_json(self.json_url, self.auth)
 
     def upload(self):
-        self.save()
-        cmd = "{} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/AnimeDB.json {}".format(self.sshpass, self.path)
-        assert os.system(cmd) == 0
+        dav_write_json(self.json_url, self.auth, self.db)
 
     def update(self, value):
         key = value["key"]
@@ -116,16 +133,16 @@ class DataBase(object):
         return None
 
 
-def update_anime(args):
+def main(url_rss, url_meta, url_json, auth, proxy=None):
     try:
         # 获取并解析RSS
         print("[Info] Opening Chrome...")
-        driver = ChromeDriver(proxy=args.proxy)
-        rss_db = driver.get_rss(args.url)
+        driver = ChromeDriver(proxy=proxy)
+        rss_db = driver.get_rss(url_rss)
 
-        # 对比数据库
+        # 对比数据库 - 查找更新
         print("[Info] Checking Database...")
-        database = DataBase(args.db_path, args.cmd_sshpass)
+        database = DataBase(url_json, auth)
         rss_db = database.detect(rss_db)
 
         print("[Info] Find {} update(s).".format(len(rss_db)))
@@ -138,17 +155,17 @@ def update_anime(args):
             v["magnet"] = driver.get_magnet(v["url"])
             print("[Info] Magnet({}): {}".format(k, v["magnet"]))
 
-        # 添加到服务器
+        # 下载命令
         for k, v in rss_db.items():
             if v["magnet"] is None:
                 continue
-            cmd = "{} {} {}".format(args.cmd_sshpass, args.cmd_add_magnet, v["magnet"])
+            v["magnet"]
             if os.system(cmd) == 0:
                 print("[Info] Success Add {} {}".format(k, v["magnet"]))
                 database.update(v)
 
         # 更新文件
-        print("[Info] Upload `{}`...".format(args.db_path))
+        print("[Info] Upload `{}`...".format(url_json))
         database.upload()
 
     finally:
@@ -161,15 +178,16 @@ if __name__ == "__main__":
         os.environ["PATH"] = "{}:{}".format(cwd, path)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url", type=str, default="https://share.dmhy.org/topics/rss/rss.xml")
-    parser.add_argument("--proxy", type=str, default="")
-    parser.add_argument("--db_path", type=str, default="antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json")
-    parser.add_argument("--cmd_sshpass", type=str, default="")
-    parser.add_argument("--cmd_add_magnet", type=str, default="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox")
+    parser.add_argument("--url_rss", type=str, default="https://share.dmhy.org/topics/rss/rss.xml")
+    parser.add_argument("--url_meta", type=str, default="https://a.jxu124.ml/webdav/configure/anime_queue")
+    parser.add_argument("--url_json", type=str, default="https://a.jxu124.ml/webdav/configure/AnimeDB.json")
+    parser.add_argument("--username", type=str, default="")
+    parser.add_argument("--password", type=str, default="")
+    # parser.add_argument("--cmd_add_magnet", type=str, default="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox")
     args = parser.parse_args()
 
     # --proxy http://127.0.0.1:1080
     # --db_path "antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json"
     # --cmd_sshpass "sshpass -p ******"
     # --cmd_add_magnet "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox"
-    update_anime(args)
+    main(args.url_rss, args.url_meta, args.url_json, (args.username, args.password))
