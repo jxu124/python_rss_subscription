@@ -133,6 +133,7 @@ class DataBase(object):
         for k, v in rss_db.items():
             if v["magnet"] is None:
                 continue
+            k = k.replace("/", "-")
             url = os.path.join(url_meta, k[:128]+".magnet")
             db = {"magnet": v["magnet"]}
             dav_write_json(url, self.auth, db)
