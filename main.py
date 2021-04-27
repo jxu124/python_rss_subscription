@@ -44,7 +44,7 @@ def dav_write_json(file_url, auth, data):
 # ⚪ 浏览器驱动
 # ---------------------------------------------------------
 class ChromeDriver(webdriver.Chrome):
-    def __init__(self, proxy=None):
+    def __init__(self, proxy=""):
         # wget -q https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_linux64.zip && unzip chromedriver_linux64.zip
         # proxy: e.g. "http://127.0.0.1:1080"
         chromeOptions = webdriver.ChromeOptions()
@@ -146,7 +146,7 @@ class DataBase(object):
 # ---------------------------------------------------------
 # ⚪ 主函数
 # ---------------------------------------------------------
-def main(url_rss, url_meta, url_json, auth, proxy=None):
+def main(url_rss, url_meta, url_json, auth, proxy=""):
     try:
         # 获取并解析RSS
         print("[Info] Opening Chrome...")
