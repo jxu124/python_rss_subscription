@@ -83,7 +83,7 @@ class ChromeDriver(webdriver.Chrome):
 # ⚪ 番剧数据集操作
 # ---------------------------------------------------------
 class DataBase(object):
-    def __init__(self, json_url="https://a.jxu124.ml/webdav/configure/AnimeDB.json", auth=None):
+    def __init__(self, json_url, auth=None):
         self.json_url = json_url
         self.auth = auth
         self.stamp = datetime(1900, 1, 1, 0, 0, 0, 0, timezone(timedelta(0, 28800)))
@@ -178,18 +178,17 @@ def main(url_rss, url_meta, url_json, auth, proxy=""):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.NOTSET)
+    logging.basicConfig(level=logging.INFO)
     cwd, path = os.getcwd(), os.environ["PATH"]
     if cwd not in path:
         os.environ["PATH"] = "{}:{}".format(cwd, path)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url_rss", type=str, default="https://share.dmhy.org/topics/rss/rss.xml")
-    parser.add_argument("--url_meta", type=str, default="https://a.jxu124.ml/webdav/configure/anime_query")
-    parser.add_argument("--url_json", type=str, default="https://a.jxu124.ml/webdav/configure/AnimeDB.json")
+    parser.add_argument("--url_rss", type=str)
+    parser.add_argument("--url_meta", type=str)
+    parser.add_argument("--url_json", type=str)
     parser.add_argument("--username", type=str, default="")
     parser.add_argument("--password", type=str, default="")
     args = parser.parse_args()
 
-    # qbittorrent-nox [magnet]
     main(args.url_rss, args.url_meta, args.url_json, (args.username, args.password))
