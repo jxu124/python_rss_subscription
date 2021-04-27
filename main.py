@@ -132,7 +132,20 @@ class DataBase(object):
                 return k1
         return None
 
+    def save_magnet(self, url_meta, rss_db):
+        for k, v in rss_db.items():
+            if v["magnet"] is None:
+                continue
+            url = os.path.join(url_meta, k[:128]+".magnet")
+            db = {"magnet": v["magnet"]}
+            dav_write_json(url, self.auth, db)
+            print("[Info] Success Add {} {}".format(k, v["magnet"]))
+            self.update(v)
 
+
+# ---------------------------------------------------------
+# ⚪ 主函数
+# ---------------------------------------------------------
 def main(url_rss, url_meta, url_json, auth, proxy=None):
     try:
         # 获取并解析RSS
@@ -156,13 +169,7 @@ def main(url_rss, url_meta, url_json, auth, proxy=None):
             print("[Info] Magnet({}): {}".format(k, v["magnet"]))
 
         # 下载命令
-        for k, v in rss_db.items():
-            if v["magnet"] is None:
-                continue
-            v["magnet"]
-            if os.system(cmd) == 0:
-                print("[Info] Success Add {} {}".format(k, v["magnet"]))
-                database.update(v)
+        database.save_magnet(url_meta, rss_db)
 
         # 更新文件
         print("[Info] Upload `{}`...".format(url_json))
@@ -179,15 +186,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--url_rss", type=str, default="https://share.dmhy.org/topics/rss/rss.xml")
-    parser.add_argument("--url_meta", type=str, default="https://a.jxu124.ml/webdav/configure/anime_queue")
+    parser.add_argument("--url_meta", type=str, default="https://a.jxu124.ml/webdav/configure/anime_query")
     parser.add_argument("--url_json", type=str, default="https://a.jxu124.ml/webdav/configure/AnimeDB.json")
     parser.add_argument("--username", type=str, default="")
     parser.add_argument("--password", type=str, default="")
-    # parser.add_argument("--cmd_add_magnet", type=str, default="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox")
     args = parser.parse_args()
 
-    # --proxy http://127.0.0.1:1080
-    # --db_path "antony@www.xujie-plus.tk:/root/openfiles/json/AnimeDB.json"
-    # --cmd_sshpass "sshpass -p ******"
     # --cmd_add_magnet "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no antony@www.xujie-plus.tk qbittorrent-nox"
     main(args.url_rss, args.url_meta, args.url_json, (args.username, args.password))
