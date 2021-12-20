@@ -25,6 +25,7 @@ jobs:
       - name: FetchMagnet
         run: |
           URL_RSS="https://share.dmhy.org/topics/rss/rss.xml"
+          URL_RSS="https://dmhy.b168.net/topics/rss/rss.xml"
           URL_META="https://a.jxu124.ml/webdav/configure/anime_query"
           URL_JSON="https://a.jxu124.ml/webdav/configure/AnimeDB.json"
           export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
