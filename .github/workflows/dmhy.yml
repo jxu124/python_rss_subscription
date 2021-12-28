@@ -26,7 +26,7 @@ jobs:
         run: |
           URL_RSS="https://share.dmhy.org/topics/rss/rss.xml"
           # URL_RSS="https://dmhy.b168.net/topics/rss/rss.xml"
-          URL_META="https://a.jxu124.ml/webdav/configure/anime_query"
-          URL_JSON="https://a.jxu124.ml/webdav/configure/AnimeDB.json"
+          URL_META="https://a.xujie.ml/webdav/configure/anime_query"
+          URL_JSON="https://a.xujie.ml/webdav/configure/AnimeDB.json"
           export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
           python main.py --url_rss "$URL_RSS" --url_meta "$URL_META" --url_json "$URL_JSON" --username "${{ secrets.DAV_USERNAME }}" --password "${{ secrets.DAV_PASSWORD }}"
