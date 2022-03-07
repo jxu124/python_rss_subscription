@@ -29,5 +29,4 @@ jobs:
           URL_META="https://a.xujie.ml/webdav/configure/anime_query"
           URL_JSON="https://a.xujie.ml/webdav/configure/AnimeDB.json"
           export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
-          echo "nameserver 1.1.1.1" >> /etc/resolv.conf
           python main.py --url_rss "$URL_RSS" --url_meta "$URL_META" --url_json "$URL_JSON" --username "${{ secrets.DAV_USERNAME }}" --password "${{ secrets.DAV_PASSWORD }}"
